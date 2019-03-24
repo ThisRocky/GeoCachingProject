@@ -2,6 +2,8 @@
 using Microsoft.Maps.MapControl.WPF;
 using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -26,6 +28,8 @@ namespace Geocaching
         // Instructions here: https://docs.microsoft.com/en-us/bingmaps/getting-started/bing-maps-dev-center-help/getting-a-bing-maps-key
         private const string applicationId = "AgiqDKrnFmQ3B6tTb3XHMXzuUY8hrVhlrsffqfaNnEmeQmLLz2me8wJ_D2Q744Md";
 
+       
+
         private MapLayer layer;
 
         // Contains the location of the latest click on the map.
@@ -34,13 +38,70 @@ namespace Geocaching
 
         private Location gothenburg = new Location(57.719021, 11.991202);
 
+
         class AppDbContext : DbContext
         {
+            public DbSet<Person> Person { get; set; }
+            //public DbSet<Geocache> Geocache { get; set; }
+            //public DbSet<FoundGeocache> FoundGeocache { get; set; }
+
             protected override void OnConfiguring(DbContextOptionsBuilder options)
             {
                 options.UseSqlServer(@"Data Source=(local)\SQLEXPRESS;Initial Catalog=Geocaching;Integrated Security=True");
             }
+
+            protected override void OnModelCreating(ModelBuilder modelBuilder)
+            {
+                modelBuilder.Entity<Person>()
+                    .HasKey(p => p.ID)
+                    .HasName("PrimaryKey_ID");
+
+                modelBuilder.Entity<Person>(ep => { ep.Property(p => p.FirstName).HasColumnType("nvarchar(50)"); });
+                modelBuilder.Entity<Person>(ep => { ep.Property(p => p.LastName).HasColumnType("nvarchar(50)"); });
+                modelBuilder.Entity<Person>(ep => { ep.Property(p => p.Latitude).HasColumnType("float"); });
+                modelBuilder.Entity<Person>(ep => { ep.Property(p => p.Longitude).HasColumnType("float"); });
+                modelBuilder.Entity<Person>(ep => { ep.Property(p => p.Country).HasColumnType("nvarchar(50)"); });
+                modelBuilder.Entity<Person>(ep => { ep.Property(p => p.City).HasColumnType("nvarchar(50)"); });
+                modelBuilder.Entity<Person>(ep => { ep.Property(p => p.StreetName).HasColumnType("nvarchar(50)"); });
+                modelBuilder.Entity<Person>(ep => { ep.Property(p => p.StreetNumber).HasColumnType("tinyint"); });
+            }
         }
+
+        public class Person
+        {
+            
+            public int ID { get; set; }
+
+            public string FirstName { get; set; }
+            public string LastName { get; set; }
+            public double Latitude { get; set; }
+            public double Longitude { get; set; }
+            public string Country { get; set; }
+            public string City { get; set; }
+            public string StreetName { get; set; }
+            public int StreetNumber { get; set; }
+        }
+
+        //public class Geocache
+        //{
+            
+        //    public int ID { get; set; }
+
+        //    public int PersonID { get; set; }
+        //    public double Latitude { get; set; }
+        //    public double Longitude { get; set; }
+        //    public string Contents { get; set; }
+        //    public string Message { get; set; }
+        //}
+
+        //public class FoundGeocache
+        //{
+        //    public int PersonID { get; set; }
+        //    public int GeoCacheID { get; set; }
+
+        //    //Relationships because its a many to many
+            
+        //}
 
         public MainWindow()
         {
