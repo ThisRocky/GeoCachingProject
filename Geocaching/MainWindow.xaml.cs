@@ -193,6 +193,14 @@ namespace Geocaching
             string contents = dialog.GeocacheContents;
             string message = dialog.GeocacheMessage;
             // Add geocache to map and database here.
+
+            Geocache geocache = new Geocache();
+            geocache.Contents = dialog.GeocacheContents;
+            geocache.Message = dialog.GeocacheMessage;
+
+            database.Add(geocache);
+            database.SaveChanges();
+
             var pin = AddPin(latestClickLocation, "Person", Colors.Gray);
 
             pin.MouseDown += (s, a) =>
