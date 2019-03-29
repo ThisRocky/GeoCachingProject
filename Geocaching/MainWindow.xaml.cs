@@ -106,7 +106,9 @@ namespace Geocaching
 
         private const string applicationId = "AgiqDKrnFmQ3B6tTb3XHMXzuUY8hrVhlrsffqfaNnEmeQmLLz2me8wJ_D2Q744Md";
 
-       
+
+        //Detta är databasvariabeln vi kallar på för att spara i själva Databasen.
+       private AppDbContext database = new AppDbContext();
 
         private MapLayer layer;
 
@@ -134,10 +136,6 @@ namespace Geocaching
 
             CreateMap();
 
-            using (var db = new AppDbContext())
-            {
-                // Load data from database and populate map here.
-            }
         }
 
         private void CreateMap()
@@ -222,7 +220,20 @@ namespace Geocaching
             string country = dialog.AddressCountry;
             string streetName = dialog.AddressStreetName;
             int streetNumber = dialog.AddressStreetNumber;
-            // Add person to map and database here.
+           
+            // Person here is added to map and the database. 
+
+            Person person = new Person();
+            person.FirstName = dialog.PersonFirstName;
+            person.LastName = dialog.PersonLastName;
+            person.Country = dialog.AddressCountry;
+            person.City = dialog.AddressCity;
+            person.StreetName = dialog.AddressStreetName;
+            person.StreetNumber = dialog.AddressStreetNumber;
+
+            database.Add(person);
+            database.SaveChanges();
+
             var pin = AddPin(latestClickLocation, "Person", Colors.Blue);
 
             pin.MouseDown += (s, a) =>
