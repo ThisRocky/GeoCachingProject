@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -33,6 +34,10 @@ namespace Geocaching
         public string City { get; set; }
         public string StreetName { get; set; }
         public int StreetNumber { get; set; }
+
+        public ICollection<Geocache> Geocaches { get; set; }
+
+        public ICollection<FoundGeocache> FoundGeocaches { get; set; }
     }
 
     public class Geocache
@@ -45,12 +50,19 @@ namespace Geocaching
         public double Longitude { get; set; }
         public string Contents { get; set; }
         public string Message { get; set; }
+        public Person Person  { get; set; }
+
+        public ICollection<FoundGeocache> FoundGeocaches { get; set; }
+
     }
 
     public class FoundGeocache
     {
+
         public int PersonID { get; set; }
+        public Person Person { get; set; }
         public int GeoCacheID { get; set; }
+        public  Geocache Geocache { get; set; }
 
 
     }
@@ -117,11 +129,6 @@ namespace Geocaching
         private Location latestClickLocation;
 
         private Location gothenburg = new Location(57.719021, 11.991202);
-
-
-       
-
-       
 
         public MainWindow()
         {
@@ -279,6 +286,14 @@ namespace Geocaching
 
             string path = dialog.FileName;
             // Read the selected file here.
+            var geocaches = new Dictionary<int, Geocache>();
+
+            string[] lines = File.ReadAllLines("Geocaches.csv").Skip(1).ToArray();
+            foreach (string line in lines)
+                try
+                {
+                    string[] values = line.split
+                }
         }
 
         private void OnSaveToFileClick(object sender, RoutedEventArgs args)
@@ -295,6 +310,10 @@ namespace Geocaching
 
             string path = dialog.FileName;
             // Write to the selected file here.
+
+
         }
     }
 }
+
+// Load from file ska vara från textfilen och save to file ska vara till textfilen från databasen. 

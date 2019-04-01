@@ -4,14 +4,16 @@ using Geocaching;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 namespace Geocaching.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20190329101545_relationShipe7")]
+    partial class relationShipe7
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -26,8 +28,6 @@ namespace Geocaching.Migrations
                     b.Property<int>("GeoCacheID");
 
                     b.HasKey("PersonID", "GeoCacheID");
-
-                    b.HasIndex("GeoCacheID");
 
                     b.ToTable("FoundGeocache");
                 });
@@ -96,19 +96,6 @@ namespace Geocaching.Migrations
                     b.HasKey("ID");
 
                     b.ToTable("Person");
-                });
-
-            modelBuilder.Entity("Geocaching.FoundGeocache", b =>
-                {
-                    b.HasOne("Geocaching.Geocache", "Geocache")
-                        .WithMany("FoundGeocaches")
-                        .HasForeignKey("GeoCacheID")
-                        .OnDelete(DeleteBehavior.Cascade);
-
-                    b.HasOne("Geocaching.Person", "Person")
-                        .WithMany("FoundGeocaches")
-                        .HasForeignKey("PersonID")
-                        .OnDelete(DeleteBehavior.Cascade);
                 });
 
             modelBuilder.Entity("Geocaching.Geocache", b =>

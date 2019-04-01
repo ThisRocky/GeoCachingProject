@@ -185,6 +185,14 @@
     <Compile Include="Migrations\20190326125157_LastFix.designer.cs">
       <DependentUpon>20190326125157_LastFix.cs</DependentUpon>
     </Compile>
+    <Compile Include="Migrations\20190329101545_relationShipe7.cs" />
+    <Compile Include="Migrations\20190329101545_relationShipe7.designer.cs">
+      <DependentUpon>20190329101545_relationShipe7.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Migrations\20190329102212_relationManytoMany.cs" />
+    <Compile Include="Migrations\20190329102212_relationManytoMany.designer.cs">
+      <DependentUpon>20190329102212_relationManytoMany.cs</DependentUpon>
+    </Compile>
     <Compile Include="Migrations\AppDbContextModelSnapshot.cs" />
     <Compile Include="PersonDialog.xaml.cs">
       <DependentUpon>PersonDialog.xaml</DependentUpon>
@@ -216,7 +224,9 @@
     <None Include="App.config" />
   </ItemGroup>
   <ItemGroup>
-    <Resource Include="Geocaches.txt" />
+    <None Include="Geocaches.csv">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
