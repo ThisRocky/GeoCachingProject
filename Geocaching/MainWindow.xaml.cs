@@ -17,10 +17,11 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
+using Microsoft.EntityFrameworkCore.Internal;
+using Microsoft.EntityFrameworkCore.Metadata.Conventions.Internal;
 
 namespace Geocaching
 {
-
     public class Person
     {
 
@@ -28,12 +29,12 @@ namespace Geocaching
 
         public string FirstName { get; set; }
         public string LastName { get; set; }
-        public double Latitude { get; set; }
-        public double Longitude { get; set; }
         public string Country { get; set; }
         public string City { get; set; }
         public string StreetName { get; set; }
         public int StreetNumber { get; set; }
+        public double Latitude { get; set; }
+        public double Longitude { get; set; }
 
         public ICollection<Geocache> Geocaches { get; set; }
 
@@ -275,6 +276,8 @@ namespace Geocaching
 
         private void OnLoadFromFileClick(object sender, RoutedEventArgs args)
         {
+            Person userPerson = new Person();
+
             var dialog = new Microsoft.Win32.OpenFileDialog();
             dialog.DefaultExt = ".txt";
             dialog.Filter = "Text documents (.txt)|*.txt";
@@ -286,14 +289,103 @@ namespace Geocaching
 
             string path = dialog.FileName;
             // Read the selected file here.
-            var geocaches = new Dictionary<int, Geocache>();
 
-            string[] lines = File.ReadAllLines("Geocaches.csv").Skip(1).ToArray();
-            foreach (string line in lines)
-                try
+            List<List<String>> collection = new List<List<string>>();
+            List<string> linesWithObjects = new List<string>(); 
+
+            string[] lines = File.ReadAllLines(path).ToArray();
+
+            foreach (var line in lines)
+            {
+                if (line != "")
                 {
-                    string[] values = line.split
+                    linesWithObjects.Add(line);
+                    continue;
                 }
+                else
+                {
+                    collection.Add(linesWithObjects);
+                    linesWithObjects = new List<string>();
+                }
+            }
+            collection.Add(linesWithObjects);
+
+
+            foreach (List<string> personLines in collection)
+            {
+                for (int i = 0; i < personLines.Count; i++)
+                {
+                    string[] values = personLines[i].Split('|').Select(v => v.Trim()).ToArray();
+
+                    if (personLines[i].StartsWith("Founded:"))
+                    {
+                        string[] foundGeo = personLines[i].Split(',').Select(f => f.Trim("Found: ".ToCharArray()).Replace(" ", "")).ToArray();
+
+                        foreach (var found in foundGeo)
+                        {
+                            int geoCacheId = int.Parse(found);
+
+                            FoundGeocache userFoundGeocache = new FoundGeocache
+                            {
+                                GeoCacheID = geoCacheId,
+                            };
+                            database.Add(userFoundGeocache);
+                            database.SaveChanges();
+                        }
+                    }
+                    
+                    else if (values.Length > 5)
+                    {
+
+                       string FirstName = values[0];
+                       string LastName = values[1];
+                       string Country = values[2];
+                       string City = values[3];
+                       string StreetName = values[4];
+                       int StreetNumber = int.Parse(values[5]);
+                       double Latitude = double.Parse(values[6]);
+                       double Longtitude = double.Parse(values[7]);
+
+                        userPerson = new Person
+                       {
+                           FirstName = FirstName,
+                           LastName = LastName,
+                           Country = Country,
+                           City = City,
+                           StreetName = StreetName,
+                           StreetNumber = StreetNumber,
+                           Latitude = Latitude,
+                           Longitude = Longtitude,
+                       };
+                       database.Add(userPerson);
+                       database.SaveChanges();
+                    }
+
+                    else if (values.Length == 5)
+                    {
+                        int personId = int.Parse(values[0]);
+                        double latitude = double.Parse(values[1]);
+                        double longitude = double.Parse(values[2]);
+                        string contents = values[3];
+                        string message = values[4];
+
+                        Geocache userGeocache = new Geocache
+                        {
+                            Latitude = latitude,
+                            Longitude = longitude,
+                            Contents = contents,
+                            Message = message,
+                        };
+                        userGeocache.Person = userPerson;
+                        database.Add(userGeocache);
+                        database.SaveChanges();
+                    }
+
+                }
+                
+            }
+
+
         }
 
         private void OnSaveToFileClick(object sender, RoutedEventArgs args)
@@ -311,9 +403,17 @@ namespace Geocaching
             string path = dialog.FileName;
             // Write to the selected file here.
 
+            var personsFromDataBase = database.Person.FromSql("SELECT FirstName, LastName, Country, City, StreetName, StreetNumber, Latitude, Longitude");
+
+            var personsCaught = personsFromDataBase.ToString().Split(',').Select(p => p.Trim()).ToArray();
+
+            foreach (var persons in personsCaught)
+            {
+
+            }
+
 
         }
     }
 }
 
-// Load from file ska vara från textfilen och save to file ska vara till textfilen från databasen. 
