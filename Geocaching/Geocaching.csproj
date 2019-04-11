@@ -165,33 +165,9 @@
     </Page>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Migrations\20190326122558_FirstMigration.cs" />
-    <Compile Include="Migrations\20190326122558_FirstMigration.designer.cs">
-      <DependentUpon>20190326122558_FirstMigration.cs</DependentUpon>
-    </Compile>
-    <Compile Include="Migrations\20190326123141_AddNullPersonID.cs" />
-    <Compile Include="Migrations\20190326123141_AddNullPersonID.designer.cs">
-      <DependentUpon>20190326123141_AddNullPersonID.cs</DependentUpon>
-    </Compile>
-    <Compile Include="Migrations\20190326124159_NullFixes.cs" />
-    <Compile Include="Migrations\20190326124159_NullFixes.designer.cs">
-      <DependentUpon>20190326124159_NullFixes.cs</DependentUpon>
-    </Compile>
-    <Compile Include="Migrations\20190326124635_DbFinished.cs" />
-    <Compile Include="Migrations\20190326124635_DbFinished.designer.cs">
-      <DependentUpon>20190326124635_DbFinished.cs</DependentUpon>
-    </Compile>
-    <Compile Include="Migrations\20190326125157_LastFix.cs" />
-    <Compile Include="Migrations\20190326125157_LastFix.designer.cs">
-      <DependentUpon>20190326125157_LastFix.cs</DependentUpon>
-    </Compile>
-    <Compile Include="Migrations\20190329101545_relationShipe7.cs" />
-    <Compile Include="Migrations\20190329101545_relationShipe7.designer.cs">
-      <DependentUpon>20190329101545_relationShipe7.cs</DependentUpon>
-    </Compile>
-    <Compile Include="Migrations\20190329102212_relationManytoMany.cs" />
-    <Compile Include="Migrations\20190329102212_relationManytoMany.designer.cs">
-      <DependentUpon>20190329102212_relationManytoMany.cs</DependentUpon>
+    <Compile Include="Migrations\20190411215320_4th.cs" />
+    <Compile Include="Migrations\20190411215320_4th.designer.cs">
+      <DependentUpon>20190411215320_4th.cs</DependentUpon>
     </Compile>
     <Compile Include="Migrations\AppDbContextModelSnapshot.cs" />
     <Compile Include="PersonDialog.xaml.cs">

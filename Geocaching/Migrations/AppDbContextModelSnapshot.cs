@@ -21,13 +21,19 @@ namespace Geocaching.Migrations
 
             modelBuilder.Entity("Geocaching.FoundGeocache", b =>
                 {
-                    b.Property<int>("PersonID");
+                    b.Property<int>("ID")
+                        .ValueGeneratedOnAdd()
+                        .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
 
                     b.Property<int>("GeoCacheID");
 
-                    b.HasKey("PersonID", "GeoCacheID");
+                    b.Property<int>("PersonID");
+
+                    b.HasKey("ID");
 
                     b.HasIndex("GeoCacheID");
+
+                    b.HasIndex("PersonID");
 
                     b.ToTable("FoundGeocache");
                 });
@@ -36,25 +42,17 @@ namespace Geocaching.Migrations
                 {
                     b.Property<int>("ID")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("int")
                         .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
 
-                    b.Property<string>("Contents")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(255)");
+                    b.Property<string>("Contents");
 
-                    b.Property<double>("Latitude")
-                        .HasColumnType("float");
+                    b.Property<double>("Latitude");
 
-                    b.Property<double>("Longitude")
-                        .HasColumnType("float");
+                    b.Property<double>("Longitude");
 
-                    b.Property<string>("Message")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(255)");
+                    b.Property<string>("Message");
 
-                    b.Property<int?>("PersonID")
-                        .HasColumnType("int");
+                    b.Property<int?>("PersonID");
 
                     b.HasKey("ID");
 
@@ -69,29 +67,21 @@ namespace Geocaching.Migrations
                         .ValueGeneratedOnAdd()
                         .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
 
-                    b.Property<string>("City")
-                        .HasColumnType("nvarchar(50)");
+                    b.Property<string>("City");
 
-                    b.Property<string>("Country")
-                        .HasColumnType("nvarchar(50)");
+                    b.Property<string>("Country");
 
-                    b.Property<string>("FirstName")
-                        .HasColumnType("nvarchar(50)");
+                    b.Property<string>("FirstName");
 
-                    b.Property<string>("LastName")
-                        .HasColumnType("nvarchar(50)");
+                    b.Property<string>("LastName");
 
-                    b.Property<double>("Latitude")
-                        .HasColumnType("float");
+                    b.Property<double>("Latitude");
 
-                    b.Property<double>("Longitude")
-                        .HasColumnType("float");
+                    b.Property<double>("Longitude");
 
-                    b.Property<string>("StreetName")
-                        .HasColumnType("nvarchar(50)");
+                    b.Property<string>("StreetName");
 
-                    b.Property<byte>("StreetNumber")
-                        .HasColumnType("tinyint");
+                    b.Property<int>("StreetNumber");
 
                     b.HasKey("ID");
 
@@ -114,7 +104,7 @@ namespace Geocaching.Migrations
             modelBuilder.Entity("Geocaching.Geocache", b =>
                 {
                     b.HasOne("Geocaching.Person", "Person")
-                        .WithMany("Geocaches")
+                        .WithMany()
                         .HasForeignKey("PersonID");
                 });
 #pragma warning restore 612, 618
