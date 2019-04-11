@@ -296,7 +296,10 @@ namespace Geocaching
             //alternative testing
             List<Person> peopleList = new List<Person>();
             List<string> foundValues = new List<string>();
-            
+
+            database.Person.RemoveRange(database.Person);
+            database.Geocache.RemoveRange(database.Geocache);
+            database.FoundGeocache.RemoveRange(database.FoundGeocache);
 
             string[] lines = File.ReadAllLines(path).ToArray();
 
@@ -324,9 +327,9 @@ namespace Geocaching
 
                     if (personLines[i].StartsWith("Found:"))
                     {
-                        foundValues.Add(personLines[i]);
+                        foundValues.Add(personLines[i]); 
                     }
-                    
+                     
                     else if (values.Length > 5)
                     {
 
@@ -340,7 +343,7 @@ namespace Geocaching
                        double Longtitude = double.Parse(values[7]);
 
                         userPerson = new Person
-                       {
+                        {
                            FirstName = FirstName,
                            LastName = LastName,
                            Country = Country,
@@ -349,10 +352,10 @@ namespace Geocaching
                            StreetNumber = StreetNumber,
                            Latitude = Latitude,
                            Longitude = Longtitude,
-                       };
-                       peopleList.Add(userPerson);
-                       database.Add(userPerson);
-                       database.SaveChanges();
+                        };
+                         peopleList.Add(userPerson);
+                         database.Add(userPerson);
+                         database.SaveChanges();
                        
                     }
 
@@ -375,29 +378,29 @@ namespace Geocaching
                         database.Add(userGeocache);
                         database.SaveChanges();
                     }
-
-                    else if (values.Length != 5 && values.Length < 5)
-                    {
-                        foundValues[i] = foundValues[i].Trim("Found:".ToCharArray());
-                        var indexes = foundValues[i].Split(',').ToArray();
-                        var geoCaches = database.Geocache.ToList();
-
-                        foreach (var newValue in indexes)
-                        {
-                            FoundGeocache userFoundGeocache = new FoundGeocache
-                            {
-                                Person = peopleList[i],
-                                GeoCacheID = int.Parse(newValue)
-                            };
-                        }
-
-                    }
-                    //string[] values = personLines[i].Split('|').Select(v => v.Trim()).ToArray();
                 }
-                
             }
+            if (foundValues[0].StartsWith("Found:"))
+            {
+                for (int i = 0; i < foundValues.Count; i++)
+                {
+                    foundValues[i] = foundValues[i].Trim("Found: ".ToCharArray());
+                    foundValues[i] = foundValues[i].Trim(" ".ToCharArray());
+                    var indexes = foundValues[i].Split(',').ToArray();
+                    var geoCaches = database.Geocache.ToList();
 
-
+                    foreach (var geoS in indexes)
+                    {
+                        FoundGeocache userNewGeo = new FoundGeocache
+                        {
+                            Person = peopleList[i],
+                            Geocache = geoCaches[int.Parse(geoS) -1]
+                        };
+                        database.Add(userNewGeo);
+                        database.SaveChanges();
+                    }
+                }
+            }
         }
 
         private void OnSaveToFileClick(object sender, RoutedEventArgs args)
@@ -417,12 +420,22 @@ namespace Geocaching
 
             var personsFromDataBase = database.Person.FromSql("SELECT FirstName, LastName, Country, City, StreetName, StreetNumber, Latitude, Longitude");
 
-            var personsCaught = personsFromDataBase.ToString().Split(',').Select(p => p.Trim()).ToArray();
+            var personsCaught = personsFromDataBase.ToString().Split('|').Select(p => p.Trim()).ToArray();
 
             foreach (var persons in personsCaught)
             {
 
             }
+            //for (int j = 0; j < indexes.Length; j++)
+            //{
+            //    FoundGeocache userFoundGeocache = new FoundGeocache
+            //    {
+            //        Person = peopleList[i],
+            //        Geocache = geoCaches[int.Parse(indexes[j])]
+            //    };
+            //    database.Add(userFoundGeocache);
+            //    database.SaveChanges();
+            //};
 
 
         }
