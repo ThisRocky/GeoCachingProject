@@ -22,6 +22,30 @@ using Microsoft.EntityFrameworkCore.Metadata.Conventions.Internal;
 
 namespace Geocaching
 {
+    public class AppDbContext : DbContext
+    {
+        public DbSet<Person> Person { get; set; }
+        public DbSet<Geocache> Geocache { get; set; }
+        public DbSet<FoundGeocache> FoundGeocache { get; set; }
+
+        protected override void OnConfiguring(DbContextOptionsBuilder options)
+        {
+            options.UseSqlServer(@"Data Source=(local)\SQLEXPRESS;Initial Catalog=Geocache;Integrated Security=True");
+        }
+        protected override void OnModelCreating(ModelBuilder model)
+        {
+            model.Entity<FoundGeocache>()
+                .HasOne(fg => fg.Person)
+                .WithMany(p => p.FoundGeocaches)
+                .HasForeignKey(fg => fg.PersonID);
+
+            model.Entity<FoundGeocache>()
+                .HasOne(fg => fg.Geocache)
+                .WithMany(g => g.FoundGeocaches)
+                .HasForeignKey(fg => fg.GeoCacheID);
+        }
+    }
+
     public class Person
     {
 
@@ -70,29 +94,6 @@ namespace Geocaching
 
     }
 
-    class AppDbContext : DbContext
-    {
-        public DbSet<Person> Person { get; set; }
-        public DbSet<Geocache> Geocache { get; set; }
-        public DbSet<FoundGeocache> FoundGeocache { get; set; }
-
-        protected override void OnConfiguring(DbContextOptionsBuilder options)
-        {
-            options.UseSqlServer(@"Data Source=(local)\SQLEXPRESS;Initial Catalog=Geocache;Integrated Security=True");
-        }
-        protected override void OnModelCreating(ModelBuilder model)
-        {
-            model.Entity<FoundGeocache>()
-                .HasOne(fg => fg.Person)
-                .WithMany(p => p.FoundGeocaches)
-                .HasForeignKey(fg => fg.PersonID);
-
-            model.Entity<FoundGeocache>()
-                .HasOne(fg => fg.Geocache)
-                .WithMany(g => g.FoundGeocaches)
-                .HasForeignKey(fg => fg.GeoCacheID);
-        } }
-    
  
     
     /// <summary>
@@ -224,11 +225,6 @@ namespace Geocaching
             pin.Background = new SolidColorBrush(color);
             pin.Opacity = opacity;
         }
-        private void UpdateMap()
-        {
-          // It is recommended (but optional) to use this method for setting the color and opacity of each pin after every user interaction that might change something.
-           // This method should then be called once after every significant action, such as clicking on a pin, clicking on the map, or clicking a context menu option.
-        }
 
       
         private void Handled(object sender, MouseButtonEventArgs e)
@@ -336,12 +332,7 @@ namespace Geocaching
             e.Handled = true;
         }
 
-    
-        private void OnMapLeftClick()
-        {
-            // Handle map click here.
-            UpdateMap();
-        }
+   
 
         private async void OnAddGeocacheClickAsync(object sender, RoutedEventArgs args)
         {
@@ -403,15 +394,17 @@ namespace Geocaching
 
             // Person here is added to map and the database. 
 
-            Person person = new Person();
-            person.FirstName = dialog.PersonFirstName;
-            person.LastName = dialog.PersonLastName;
-            person.Country = dialog.AddressCountry;
-            person.City = dialog.AddressCity;
-            person.StreetName = dialog.AddressStreetName;
-            person.StreetNumber = dialog.AddressStreetNumber;
-            person.Latitude = latestClickLocation.Latitude;
-            person.Longitude = latestClickLocation.Longitude;
+            Person person = new Person
+            {
+                FirstName = dialog.PersonFirstName,
+                LastName = dialog.PersonLastName,
+                Country = dialog.AddressCountry,
+                City = dialog.AddressCity,
+                StreetName = dialog.AddressStreetName,
+                StreetNumber = dialog.AddressStreetNumber,
+                Latitude = latestClickLocation.Latitude,
+                Longitude = latestClickLocation.Longitude,
+            };
 
             await database.AddAsync(person);
             await database.SaveChangesAsync();
@@ -430,16 +423,16 @@ namespace Geocaching
 
         private Pushpin AddPin(Location location, string tooltip, Color color, double opacity, object obj)
         {
-            var Location = new Location { Latitude = location.Latitude, Longitude = location.Longitude };
+            var newloc = new Location { Latitude = location.Latitude, Longitude = location.Longitude };
             var pin = new Pushpin();
             pin.Cursor = Cursors.Hand;
             pin.Background = new SolidColorBrush(color);
             pin.Opacity = opacity;
-            pin.Location = location;
+            pin.Location = newloc;
             ToolTipService.SetToolTip(pin, tooltip);
             ToolTipService.SetInitialShowDelay(pin, 0);
             pin.Tag = obj;
-            layer.AddChild(pin, latestClickLocation);
+            layer.AddChild(pin, newloc);
             return pin;
         }
 
@@ -569,7 +562,7 @@ namespace Geocaching
                         database.SaveChanges();
                     }
                 }
-            } UpdateMap();
+            }
         }
 
         private void OnSaveToFileClick(object sender, RoutedEventArgs args)
