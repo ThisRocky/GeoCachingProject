@@ -562,7 +562,7 @@ namespace Geocaching
                         database.SaveChanges();
                     }
                 }
-            }
+            } CreateMap();
         }
 
         private void OnSaveToFileClick(object sender, RoutedEventArgs args)
