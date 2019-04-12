@@ -353,8 +353,8 @@ namespace Geocaching
             Geocache geocache = new Geocache
             {
                 PersonID = selectedPerson.ID,
-                Contents = dialog.GeocacheContents,
                 Message = dialog.GeocacheMessage,
+                Contents = dialog.GeocacheContents,
                 Latitude = latestClickLocation.Latitude,
                 Longitude = latestClickLocation.Longitude,
                 
@@ -367,14 +367,14 @@ namespace Geocaching
                 location.Latitude = geocache.Latitude;
                 location.Longitude = geocache.Longitude;
 
-                var pin = AddPin(location, geocache.Message, Colors.Black, 1, geocache);
+                var pin = AddPin(latestClickLocation,geocache.Message, Colors.Gray, 1, location.Latitude);
                 pin.MouseDown += Handled;
             
             }
             else
             {
                 // Handle click on geocache pin here.
-                MessageBox.Show("You clicked a geocache");
+                MessageBox.Show("Please select a person before adding a geocache.");
              
             };
 
@@ -398,10 +398,10 @@ namespace Geocaching
             {
                 FirstName = dialog.PersonFirstName,
                 LastName = dialog.PersonLastName,
-                Country = dialog.AddressCountry,
-                City = dialog.AddressCity,
                 StreetName = dialog.AddressStreetName,
                 StreetNumber = dialog.AddressStreetNumber,
+                City = dialog.AddressCity,
+                Country = dialog.AddressCountry,
                 Latitude = latestClickLocation.Latitude,
                 Longitude = latestClickLocation.Longitude,
             };
@@ -413,7 +413,7 @@ namespace Geocaching
             location.Latitude = person.Latitude;
             location.Longitude = person.Longitude;
 
-            var pin = AddPin(location, person.FirstName+ " "+ person.LastName + "\n" + person.StreetName + " "+ person.StreetNumber, Colors.Blue, 1, person);
+            var pin = AddPin(location, person.FirstName+ " "+ person.LastName + "\n" + person.StreetName + " "+ person.StreetNumber + "\n" + person.City + "\n" + person.Country, Colors.Blue, 1, person);
 
             selectedPerson = person;
           
