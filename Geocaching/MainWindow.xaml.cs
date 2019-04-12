@@ -347,7 +347,12 @@ namespace Geocaching
                 return;
             }
 
+<<<<<<< HEAD
+            //string contents = dialog.GeocacheContents;
+            //string message = dialog.GeocacheMessage;
+=======
            
+>>>>>>> 760ea465a0aaa6bbe52a940613f54bfba37cedcb
             // Add geocache to map and database here.
 
             Geocache geocache = new Geocache
@@ -390,8 +395,16 @@ namespace Geocaching
                 return;
             }
 
+<<<<<<< HEAD
+            //string city = dialog.AddressCity;
+            //string country = dialog.AddressCountry;
+            //string streetName = dialog.AddressStreetName;
+            //int streetNumber = dialog.AddressStreetNumber;
+           
+=======
           
 
+>>>>>>> 760ea465a0aaa6bbe52a940613f54bfba37cedcb
             // Person here is added to map and the database. 
 
             Person person = new Person
@@ -455,7 +468,7 @@ namespace Geocaching
             List<List<String>> collection = new List<List<string>>();
             List<string> linesWithObjects = new List<string>(); 
 
-            //alternative testing
+            //Lists that hold the people and their current string of found values.
             List<Person> peopleList = new List<Person>();
             List<string> foundValues = new List<string>();
 
