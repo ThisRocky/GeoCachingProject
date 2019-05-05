@@ -170,6 +170,11 @@ namespace Geocaching
             var addGeocacheMenuItem = new MenuItem { Header = "Add Geocache" };
             map.ContextMenu.Items.Add(addGeocacheMenuItem);
             addGeocacheMenuItem.Click += OnAddGeocacheClick;
+
+
+            //Ladda in personer och geocaches..
+            LoadPersonFromDataBase();
+            LoadGeocacheFromDataBase();
         }
 
         private void UpdateMap()
@@ -208,6 +213,7 @@ namespace Geocaching
             database.SaveChanges();
 
             // Add person to map and database here.
+            //FIXA TOOLTIPPEN HÄR
             var pin = AddPin(latestClickLocation, "Person", Colors.Blue, 1);
 
             pin.MouseDown += (s, a) =>
@@ -283,6 +289,20 @@ namespace Geocaching
 
                 var addPersonPin = AddPin(location, person.FirstName + "" + person.LastName + "\n" + person.Country + "" + person.City + "\n"
                                                     + person.StreetName + person.StreetNumber, Colors.Blue, 1);
+            }
+        }
+        //ladda in geocaches från databasen.
+        private void LoadGeocacheFromDataBase()
+        {
+            var geocachePin = database.Geocache.ToArray();
+
+            foreach (Geocache geocache in geocachePin)
+            {
+                Location location = new Location();
+                location.Latitude = geocache.Latitude;
+                location.Longitude = geocache.Longitude;
+
+                var addGeocachePin = AddPin(location, geocache.Message, Colors.Gray, 1);
             }
         }
 
