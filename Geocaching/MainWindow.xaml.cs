@@ -214,7 +214,11 @@ namespace Geocaching
 
             // Add person to map and database here.
             //FIXA TOOLTIPPEN HÄR
-            var pin = AddPin(latestClickLocation, "Person", Colors.Blue, 1);
+            var pin = AddPin(latestClickLocation, person.FirstName + " " + person.LastName + "\n" + person.Country + " "
+                                          + person.City + " " + person.StreetName + " " + person.StreetNumber, Colors.Blue, 1);
+
+            //Sätt nuvarande person till detta personobjekt.
+            selectedPerson = person;
 
             pin.MouseDown += (s, a) =>
             {
