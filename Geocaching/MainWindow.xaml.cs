@@ -112,7 +112,7 @@ namespace Geocaching
         private Location location;
         private Location latestClickLocation;
         private Location gothenburg = new Location(57.719021, 11.991202);
-        private Person selectedPerson = null;
+        private Person SelectedPerson = null;
 
 
         // Contains the location of the latest click on the map.
@@ -215,14 +215,15 @@ namespace Geocaching
             // Add person to map and database here.
             //FIXA TOOLTIPPEN HÄR
             var pin = AddPin(latestClickLocation, person.FirstName + " " + person.LastName + "\n" + person.Country + " "
-                                          + person.City + " " + person.StreetName + " " + person.StreetNumber, Colors.Blue, 1);
+                                          + person.City + " " + person.StreetName + " " + person.StreetNumber, Colors.Blue, 1, person);
 
             //Sätt nuvarande person till detta personobjekt.
-            selectedPerson = person;
+            SelectedPerson = person;
 
-            pin.MouseDown += (s, a) =>
+            //lägg en metod här och börja med IF satser.
+            pin.MouseDown += (e, a) =>
             {
-                // Handle click on person pin here.
+                // Handle click on person pin here, MÅSTE KÖRAS I MINA ANDRA METODER OCKSÅ!!
                 MessageBox.Show("You clicked a person");
                 UpdateMap();
 
@@ -233,7 +234,7 @@ namespace Geocaching
 
         private void OnAddGeocacheClick(object sender, RoutedEventArgs args)
         {
-            if (selectedPerson != null)
+            if (SelectedPerson != null)
             {
                 var dialog = new GeocacheDialog();
                 dialog.Owner = this;
@@ -246,7 +247,7 @@ namespace Geocaching
 
                 Geocache geocache = new Geocache
                 {
-                    PersonID = selectedPerson.ID,
+                    PersonID = SelectedPerson.ID,
                     Latitude = latestClickLocation.Latitude,
                     Longitude = latestClickLocation.Longitude,
                     Contents = dialog.GeocacheContents,
@@ -262,11 +263,11 @@ namespace Geocaching
                     Longitude = geocache.Longitude,
                 };
 
-                var addGeoPin = AddPin(location, geocache.Message, Colors.Gray, 1);
+                var addGeoPin = AddPin(location, geocache.Message, Colors.Gray, 1,geocache);
             }
 
             // Add geocache to map and database here.
-            var pin = AddPin(latestClickLocation, "Person", Colors.Gray, 1);
+            var pin = AddPin(latestClickLocation, "Person", Colors.Gray, 1,"Person");
 
             pin.MouseDown += (s, a) =>
             {
@@ -278,6 +279,7 @@ namespace Geocaching
                 a.Handled = true;
             };
         }
+
         //ladda in personer från databasen.
         private void LoadPersonFromDataBase()
         {
@@ -291,8 +293,16 @@ namespace Geocaching
                 location.Latitude = person.Latitude;
                 location.Longitude = person.Longitude;
 
-                var addPersonPin = AddPin(location, person.FirstName + "" + person.LastName + "\n" + person.Country + "" + person.City + "\n"
-                                                    + person.StreetName + person.StreetNumber, Colors.Blue, 1);
+                var pin = AddPin(location, person.FirstName + "" + person.LastName + "\n" + person.Country + "" + person.City + "\n"
+                                                + person.StreetName + person.StreetNumber, Colors.Blue, 1,person);
+
+                pin.MouseDown += (c, a) =>
+                {
+                    //Anropa metod vid knapptryck
+                    CurrentUserPin(pin, person);
+
+                    a.Handled = true;
+                };
             }
         }
         //ladda in geocaches från databasen.
@@ -306,21 +316,65 @@ namespace Geocaching
                 location.Latitude = geocache.Latitude;
                 location.Longitude = geocache.Longitude;
 
-                var addGeocachePin = AddPin(location, geocache.Message, Colors.Gray, 1);
+                var addGeocachePin = AddPin(location, geocache.Message, Colors.Gray, 1, geocache);
             }
         }
 
         //utökar metoden med opacity 
-        private Pushpin AddPin(Location location, string tooltip, Color color, double opacity)
+        private Pushpin AddPin(Location location, string tooltip, Color color, double opacity, object tag)
         {
             var pin = new Pushpin();
             pin.Cursor = Cursors.Hand;
             pin.Opacity = opacity;
+            pin.Tag = tag;
             pin.Background = new SolidColorBrush(color);
             ToolTipService.SetToolTip(pin, tooltip);
             ToolTipService.SetInitialShowDelay(pin, 0);
             layer.AddChild(pin, new Location(location.Latitude, location.Longitude));
             return pin;
+
+        }
+
+        private void CurrentUserPin(Pushpin pin, Person person)
+        {
+            SelectedPerson = person;
+            pin.Opacity = 1;
+
+            //loopa igenom alla element.
+            foreach (UIElement allElements in layer.Children)
+            {
+                if (allElements is Pushpin)
+                {
+                    var newPin = (Pushpin)allElements;
+
+                    if (newPin.Tag is Person)
+                    {
+                        //sänk opacity om det inte är samma user
+                        if (pin != newPin)
+                        {
+                            newPin.Opacity = 0.5;
+                        }
+                    }
+                    else if (newPin.Tag is Geocache)
+                    {
+                        var geoPin = (Geocache)((Pushpin)newPin).Tag;
+
+                        if (geoPin.Person == person)
+                        {
+                            newPin.Background = new SolidColorBrush(Colors.Black);
+                        }
+                        else if (person.FoundGeocaches != null && person.FoundGeocaches.Any(fg => fg.Geocache == geoPin))
+                        {
+                            newPin.Background = new SolidColorBrush(Colors.Green);
+                        }
+
+                        else
+                        {
+                            newPin.Background = new SolidColorBrush(Colors.Red);
+                        }
+                    }
+                }
+            }
         }
 
         //färdig
@@ -505,6 +559,16 @@ namespace Geocaching
             }
 
             File.WriteAllLines(path, containerList);
+        }
+
+
+
+
+
+        private void UpdateColor(Pushpin pin, Color color, double opacity)
+        {
+            pin.Opacity = opacity;
+            pin.Background = new SolidColorBrush(color);
         }
     }
 }
