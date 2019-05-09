@@ -283,8 +283,8 @@ namespace Geocaching
         //ladda in personer från databasen.
         private void LoadPersonFromDataBase()
         {
-
-            var personPin = database.Person.ToArray();
+            //include added!
+            var personPin = database.Person.Include(p => p.FoundGeocaches);
 
 
             foreach (Person person in personPin)
@@ -320,7 +320,7 @@ namespace Geocaching
             }
         }
 
-        //utökar metoden med opacity 
+        //utökar metoden med opacity och object parameter.
         private Pushpin AddPin(Location location, string tooltip, Color color, double opacity, object tag)
         {
             var pin = new Pushpin();
@@ -357,13 +357,14 @@ namespace Geocaching
                     }
                     else if (newPin.Tag is Geocache)
                     {
-                        var geoPin = (Geocache)((Pushpin)newPin).Tag;
+                        var geoPin = (Geocache)newPin.Tag;
 
                         if (geoPin.Person == person)
                         {
                             newPin.Background = new SolidColorBrush(Colors.Black);
                         }
-                        else if (person.FoundGeocaches != null && person.FoundGeocaches.Any(fg => fg.Geocache == geoPin))
+                        //behöver jag ladda in Foundgeocaches?
+                        else if (person.FoundGeocaches != null && person.FoundGeocaches.Any(fg => fg.GeoCacheID == geoPin.ID))
                         {
                             newPin.Background = new SolidColorBrush(Colors.Green);
                         }
