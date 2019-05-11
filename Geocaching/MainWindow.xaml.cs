@@ -9,6 +9,7 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
+using Microsoft.EntityFrameworkCore.Internal;
 
 namespace Geocaching
 {
@@ -41,7 +42,7 @@ namespace Geocaching
         public double Longitude { get; set; }
         public string Contents { get; set; }
         public string Message { get; set; }
-        public Person Person  { get; set; }
+        public Person Person { get; set; }
 
         public ICollection<FoundGeocache> FoundGeocaches { get; set; }
     }
@@ -150,13 +151,14 @@ namespace Geocaching
             layer = new MapLayer();
             map.Children.Add(layer);
 
-            MouseDown += (sender, e) =>
+            map.MouseDown += (sender, e) =>
             {
                 var point = e.GetPosition(this);
                 latestClickLocation = map.ViewportPointToLocation(point);
 
                 if (e.LeftButton == MouseButtonState.Pressed)
                 {
+
                     OnMapLeftClick();
                 }
             };
@@ -187,7 +189,25 @@ namespace Geocaching
         {
             // Handle map click here.
             UpdateMap();
+            SelectedPerson = null;
+
+            foreach (UIElement element in layer.Children)
+            {
+                if (element is Pushpin)
+                {
+                    element.Opacity = 1.0;
+
+                    var pin = (Pushpin)element;
+
+                    if (pin.Tag is Geocache)
+                    {
+                        pin.Background = new SolidColorBrush(Colors.Gray);
+                    }
+                }
+            }
         }
+
+
 
         //färdig
         private void OnAddPersonClick(object sender, RoutedEventArgs args)
@@ -217,14 +237,13 @@ namespace Geocaching
             var pin = AddPin(latestClickLocation, person.FirstName + " " + person.LastName + "\n" + person.Country + " "
                                           + person.City + " " + person.StreetName + " " + person.StreetNumber, Colors.Blue, 1, person);
 
-            //Sätt nuvarande person till detta personobjekt.
             SelectedPerson = person;
 
-            //lägg en metod här och börja med IF satser.
             pin.MouseDown += (e, a) =>
             {
-                // Handle click on person pin here, MÅSTE KÖRAS I MINA ANDRA METODER OCKSÅ!!
-                MessageBox.Show("You clicked a person");
+                //Anropa metod vid knapptryck
+                CurrentUserPin(pin, person);
+
                 UpdateMap();
 
                 // Prevent click from being triggered on map.
@@ -263,11 +282,11 @@ namespace Geocaching
                     Longitude = geocache.Longitude,
                 };
 
-                var addGeoPin = AddPin(location, geocache.Message, Colors.Gray, 1,geocache);
+                var addGeoPin = AddPin(location, geocache.Message, Colors.Gray, 1, geocache);
             }
 
             // Add geocache to map and database here.
-            var pin = AddPin(latestClickLocation, "Person", Colors.Gray, 1,"Person");
+            var pin = AddPin(latestClickLocation, "Person", Colors.Gray, 1, "Person");
 
             pin.MouseDown += (s, a) =>
             {
@@ -280,7 +299,7 @@ namespace Geocaching
             };
         }
 
-        //ladda in personer från databasen.
+        //ladda in personer från databasen. - FÄRDIG!
         private void LoadPersonFromDataBase()
         {
             //include added!
@@ -294,7 +313,7 @@ namespace Geocaching
                 location.Longitude = person.Longitude;
 
                 var pin = AddPin(location, person.FirstName + "" + person.LastName + "\n" + person.Country + "" + person.City + "\n"
-                                                + person.StreetName + person.StreetNumber, Colors.Blue, 1,person);
+                                                + person.StreetName + person.StreetNumber, Colors.Blue, 1, person);
 
                 pin.MouseDown += (c, a) =>
                 {
@@ -305,10 +324,11 @@ namespace Geocaching
                 };
             }
         }
+
         //ladda in geocaches från databasen.
         private void LoadGeocacheFromDataBase()
         {
-            var geocachePin = database.Geocache.ToArray();
+            var geocachePin = database.Geocache.Include(g => g.Person);
 
             foreach (Geocache geocache in geocachePin)
             {
@@ -316,7 +336,11 @@ namespace Geocaching
                 location.Latitude = geocache.Latitude;
                 location.Longitude = geocache.Longitude;
 
-                var addGeocachePin = AddPin(location, geocache.Message, Colors.Gray, 1, geocache);
+                var pin = AddPin(location, geocache.Message, Colors.Gray, 1, geocache);
+
+
+                pin.MouseDown += SelectedGeo;
+
             }
         }
 
@@ -363,7 +387,6 @@ namespace Geocaching
                         {
                             newPin.Background = new SolidColorBrush(Colors.Black);
                         }
-                        //behöver jag ladda in Foundgeocaches?
                         else if (person.FoundGeocaches != null && person.FoundGeocaches.Any(fg => fg.GeoCacheID == geoPin.ID))
                         {
                             newPin.Background = new SolidColorBrush(Colors.Green);
@@ -376,6 +399,72 @@ namespace Geocaching
                     }
                 }
             }
+        }
+
+        private void UpdateColor(Pushpin pin, Color color, double opacity)
+        {
+            pin.Opacity = opacity;
+            pin.Background = new SolidColorBrush(color);
+        }
+
+        private void SelectedGeo(object sender, MouseButtonEventArgs e)
+        {
+            Pushpin pin = (Pushpin)sender;
+            Geocache geocache = (Geocache)pin.Tag;
+
+            Brush redBrush = new SolidColorBrush(Colors.Red);
+            Brush greenBrush = new SolidColorBrush(Colors.Green);
+
+            if (SelectedPerson == null)
+            {
+                MessageBox.Show("Please select a person first");
+
+                e.Handled = true;
+            }
+
+            if (pin.Background.ToString() != redBrush.ToString())
+            {
+                try
+                {
+                    FoundGeocache foundgeo = database.FoundGeocache.FirstOrDefault(fg =>
+                        fg.PersonID == SelectedPerson.ID && fg.GeoCacheID == geocache.ID);
+
+                    database.Remove(foundgeo);
+                    database.SaveChanges();
+
+                    UpdateColor(pin, Colors.Red, 1);
+
+
+
+                    e.Handled = true;
+                }
+                catch (Exception ex)
+                {
+                    ex.ToString();
+                }
+            }
+            else if (pin.Background.ToString() != greenBrush.ToString())
+            {
+                FoundGeocache foundgeoche = new FoundGeocache
+                {
+                    Person = SelectedPerson,
+                    Geocache = geocache,
+                };
+                try
+                {
+                    database.Add(foundgeoche);
+                    database.SaveChanges();
+
+                    UpdateColor(pin, Colors.Green, 1);
+                    e.Handled = true;
+
+                }
+                catch (Exception ex)
+                {
+                    ex.ToString();
+                }
+            }
+
         }
 
         //färdig
@@ -398,7 +487,7 @@ namespace Geocaching
             // A 2d List that holds other lists of the type "string". 
 
             List<List<String>> collection = new List<List<string>>();
-            List<string> linesWithObjects = new List<string>(); 
+            List<string> linesWithObjects = new List<string>();
 
             //A list that holds Persons and a string list that holds their found geocaches.
             List<Person> peopleList = new List<Person>();
@@ -434,36 +523,36 @@ namespace Geocaching
 
                     if (personLines[i].StartsWith("Found:"))
                     {
-                        foundValues.Add(personLines[i]); 
+                        foundValues.Add(personLines[i]);
                     }
-                     
+
                     else if (values.Length > 5)
                     {
 
-                       string FirstName = values[0];
-                       string LastName = values[1];
-                       string Country = values[2];
-                       string City = values[3];
-                       string StreetName = values[4];
-                       int StreetNumber = int.Parse(values[5]);
-                       double Latitude = double.Parse(values[6]);
-                       double Longtitude = double.Parse(values[7]);
+                        string FirstName = values[0];
+                        string LastName = values[1];
+                        string Country = values[2];
+                        string City = values[3];
+                        string StreetName = values[4];
+                        int StreetNumber = int.Parse(values[5]);
+                        double Latitude = double.Parse(values[6]);
+                        double Longtitude = double.Parse(values[7]);
 
                         userPerson = new Person
                         {
-                           FirstName = FirstName,
-                           LastName = LastName,
-                           Country = Country,
-                           City = City,
-                           StreetName = StreetName,
-                           StreetNumber = StreetNumber,
-                           Latitude = Latitude,
-                           Longitude = Longtitude,
+                            FirstName = FirstName,
+                            LastName = LastName,
+                            Country = Country,
+                            City = City,
+                            StreetName = StreetName,
+                            StreetNumber = StreetNumber,
+                            Latitude = Latitude,
+                            Longitude = Longtitude,
                         };
-                         peopleList.Add(userPerson);
-                         database.Add(userPerson);
-                         database.SaveChanges();
-                       
+                        peopleList.Add(userPerson);
+                        database.Add(userPerson);
+                        database.SaveChanges();
+
                     }
 
                     else if (values.Length == 5)
@@ -502,7 +591,7 @@ namespace Geocaching
                         FoundGeocache userNewGeo = new FoundGeocache
                         {
                             Person = peopleList[i],
-                            Geocache = geoCaches[int.Parse(geoS) -1]
+                            Geocache = geoCaches[int.Parse(geoS) - 1]
                         };
                         database.Add(userNewGeo);
                         database.SaveChanges();
@@ -541,7 +630,7 @@ namespace Geocaching
 
                 //Och här vill vi loopa fram de geocaches som personen har hittat. Vi loopar igenom FoundGeocaches och för varje element(uppfunnen geocache) vi hittar 
                 //vill vi lägga till den uppfunna geocachensID. geoIDS innehåller alltså dom ID på dom uppfunna geocaches. 
-                
+
                 FoundGeocache[] foundCaches = database.FoundGeocache.Where(fg => fg.PersonID == p.ID).OrderByDescending(o => o).ToArray();
 
                 string geoIDs = "";
@@ -560,16 +649,6 @@ namespace Geocaching
             }
 
             File.WriteAllLines(path, containerList);
-        }
-
-
-
-
-
-        private void UpdateColor(Pushpin pin, Color color, double opacity)
-        {
-            pin.Opacity = opacity;
-            pin.Background = new SolidColorBrush(color);
         }
     }
 }
