@@ -230,6 +230,8 @@ namespace Geocaching
                 City = dialog.AddressCity,
                 StreetName = dialog.AddressStreetName,
                 StreetNumber = dialog.AddressStreetNumber,
+                Latitude = latestClickLocation.Latitude,
+                Longitude = latestClickLocation.Longitude,
             };
 
             database.Add(person);
@@ -303,7 +305,6 @@ namespace Geocaching
 
             foreach (Person person in personPin)
             {
-
                 Location location = new Location();
                 location.Latitude = person.Latitude;
                 location.Longitude = person.Longitude;
@@ -336,12 +337,16 @@ namespace Geocaching
                 //Tooltip för att displaya HUD.
 
                 var tooltip = $"GeocacheInfo: \n" +
-                              $"Added by {geocache.Person.FirstName} {geocache.Person.LastName}\n" +
                               $"Latitude: {geocache.Latitude} \n" +
                               $"Longitude: {geocache.Longitude}\n" +
-                              $"Message: {geocache.Message}";
+                              $"Message: {geocache.Message}\n" +
+                              $"Contents:{geocache.Contents}\n" +
+                              $"Added by {geocache.Person.FirstName} {geocache.Person.LastName}\n";
 
-                
+
+
+
+
                 var pin = AddPin(location, tooltip, Colors.Gray, 1, geocache);
 
 
