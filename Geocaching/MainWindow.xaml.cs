@@ -212,6 +212,7 @@ namespace Geocaching
         //färdig
         private void OnAddPersonClick(object sender, RoutedEventArgs args)
         {
+
             var dialog = new PersonDialog();
             dialog.Owner = this;
             dialog.ShowDialog();
@@ -219,6 +220,7 @@ namespace Geocaching
             {
                 return;
             }
+
             //skapar ett person objekt.
             var person = new Person
             {
@@ -229,15 +231,13 @@ namespace Geocaching
                 StreetName = dialog.AddressStreetName,
                 StreetNumber = dialog.AddressStreetNumber,
             };
+
             database.Add(person);
             database.SaveChanges();
 
             // Add person to map and database here.
-            //FIXA TOOLTIPPEN HÄR
             var pin = AddPin(latestClickLocation, person.FirstName + " " + person.LastName + "\n" + person.Country + " "
                                           + person.City + " " + person.StreetName + " " + person.StreetNumber, Colors.Blue, 1, person);
-
-            SelectedPerson = person;
 
             pin.MouseDown += (e, a) =>
             {
@@ -253,7 +253,11 @@ namespace Geocaching
 
         private void OnAddGeocacheClick(object sender, RoutedEventArgs args)
         {
-            if (SelectedPerson != null)
+            if (SelectedPerson == null)
+            {
+                MessageBox.Show("Please select a person first!");
+            }
+            else
             {
                 var dialog = new GeocacheDialog();
                 dialog.Owner = this;
@@ -267,36 +271,28 @@ namespace Geocaching
                 Geocache geocache = new Geocache
                 {
                     PersonID = SelectedPerson.ID,
+                    Message = dialog.GeocacheMessage,
+                    Contents = dialog.GeocacheContents,
                     Latitude = latestClickLocation.Latitude,
                     Longitude = latestClickLocation.Longitude,
-                    Contents = dialog.GeocacheContents,
-                    Message = dialog.GeocacheMessage
                 };
                 database.Add(geocache);
                 database.SaveChanges();
 
-                //skapa en location för geocachen.
-                Location location = new Location
-                {
-                    Latitude = geocache.Latitude,
-                    Longitude = geocache.Longitude,
-                };
+                var tooltip = $"GeocacheInfo: \n" +
+                              $"Added by: {SelectedPerson.FirstName} {SelectedPerson.LastName} \n" +
+                              $"Latitude: {geocache.Latitude} \n" +
+                              $"Longitude: {geocache.Longitude}\n" +
+                              $"Message: {geocache.Message}";
 
-                var addGeoPin = AddPin(location, geocache.Message, Colors.Gray, 1, geocache);
+                // Add geocache to map and database here.
+                var pin = AddPin(latestClickLocation, tooltip, Colors.Black, 1, geocache);
+
+
+                pin.MouseDown += SelectedGeo;
             }
 
-            // Add geocache to map and database here.
-            var pin = AddPin(latestClickLocation, "Person", Colors.Gray, 1, "Person");
-
-            pin.MouseDown += (s, a) =>
-            {
-                // Handle click on geocache pin here.
-                MessageBox.Show("You clicked a geocache");
-                UpdateMap();
-
-                // Prevent click from being triggered on map.
-                a.Handled = true;
-            };
+           
         }
 
         //ladda in personer från databasen. - FÄRDIG!
@@ -305,9 +301,9 @@ namespace Geocaching
             //include added!
             var personPin = database.Person.Include(p => p.FoundGeocaches);
 
-
             foreach (Person person in personPin)
             {
+
                 Location location = new Location();
                 location.Latitude = person.Latitude;
                 location.Longitude = person.Longitude;
@@ -330,13 +326,23 @@ namespace Geocaching
         {
             var geocachePin = database.Geocache.Include(g => g.Person);
 
+
             foreach (Geocache geocache in geocachePin)
             {
                 Location location = new Location();
                 location.Latitude = geocache.Latitude;
                 location.Longitude = geocache.Longitude;
 
-                var pin = AddPin(location, geocache.Message, Colors.Gray, 1, geocache);
+                //Tooltip för att displaya HUD.
+
+                var tooltip = $"GeocacheInfo: \n" +
+                              $"Added by {geocache.Person.FirstName} {geocache.Person.LastName}\n" +
+                              $"Latitude: {geocache.Latitude} \n" +
+                              $"Longitude: {geocache.Longitude}\n" +
+                              $"Message: {geocache.Message}";
+
+                
+                var pin = AddPin(location, tooltip, Colors.Gray, 1, geocache);
 
 
                 pin.MouseDown += SelectedGeo;
@@ -391,6 +397,10 @@ namespace Geocaching
                         {
                             newPin.Background = new SolidColorBrush(Colors.Green);
                         }
+                        else if (person.Geocaches != null && person.Geocaches.Any(g => geoPin.PersonID == person.ID))
+                        {
+                            newPin.Background = new SolidColorBrush(Colors.Black);
+                        }
 
                         else
                         {
@@ -409,6 +419,7 @@ namespace Geocaching
 
         private void SelectedGeo(object sender, MouseButtonEventArgs e)
         {
+
             Pushpin pin = (Pushpin)sender;
             Geocache geocache = (Geocache)pin.Tag;
 
@@ -421,6 +432,7 @@ namespace Geocaching
 
                 e.Handled = true;
             }
+
 
             if (pin.Background.ToString() != redBrush.ToString())
             {
@@ -464,8 +476,13 @@ namespace Geocaching
                     ex.ToString();
                 }
             }
+            else if (pin.Background.ToString() == null)
+            {
+                //do nothing
+            }
 
         }
+
 
         //färdig
         private void OnLoadFromFileClick(object sender, RoutedEventArgs args)
@@ -650,6 +667,7 @@ namespace Geocaching
 
             File.WriteAllLines(path, containerList);
         }
+
     }
 }
 
