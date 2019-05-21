@@ -515,9 +515,6 @@ namespace Geocaching
             List<Person> peopleList = new List<Person>();
             List<string> foundValues = new List<string>();
 
-            database.Person.RemoveRange(database.Person);
-            database.Geocache.RemoveRange(database.Geocache);
-            database.FoundGeocache.RemoveRange(database.FoundGeocache);
 
             string[] lines = File.ReadAllLines(path).ToArray();
 
